@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="de" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Twin Suns Valley - State Network</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        tsdark: {
+                            900: '#090a0f',
+                            800: '#13151f',
+                            700: '#1e2230',
+                            600: '#2a2f45'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter & Orbitron -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #090a0f; }
+        ::-webkit-scrollbar-thumb { background: #2a2f45; border-radius: 3px; }
+        
+        :root {
+            --primary-color: #1e40af;
+            --primary-hover: #1e3a8a;
+            --secondary-color: #f59e0b;
+            --badge-bg: rgba(30, 64, 175, 0.15);
+            --badge-border: rgba(30, 64, 175, 0.3);
+        }
+        
+        .theme-primary { color: var(--primary-color); }
+        .theme-bg { background-color: var(--primary-color); }
+        .theme-bg:hover { background-color: var(--primary-hover); }
+        .theme-border { border-color: var(--primary-color); }
+        .theme-ring:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 2px var(--badge-border); }
+        .theme-badge { background-color: var(--badge-bg); border-color: var(--badge-border); color: var(--primary-color); }
+        .theme-secondary-text { color: var(--secondary-color); }
+    </style>
+</head>
+<body class="bg-tsdark-900 text-gray-100 min-h-screen flex flex-col selection:bg-blue-500 selection:text-white">
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- Top Header Bar -->
+    <header id="header-bar" class="bg-tsdark-800 border-b border-tsdark-600 px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4 sticky top-0 z-40 shadow-xl transition-colors duration-300">
+        <div class="flex items-center gap-3">
+            <div id="header-logo" class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg text-white font-black text-xl font-orbitron transition-colors duration-300">
+                LSPD
+            </div>
+            <div>
+                <h1 class="font-orbitron font-bold text-lg tracking-wider text-white flex items-center gap-2">
+                    <span id="header-title">LSPD STATE NET</span> 
+                    <span id="header-badge" class="text-xs px-2 py-0.5 rounded theme-badge font-semibold">HQ TERMINAL</span>
+                </h1>
+                <p class="text-xs text-gray-400" id="header-subtitle">Los Santos Police Department Intranet</p>
+            </div>
+        </div>
+
+        <!-- Faction Selector Tabs -->
+        <div class="flex items-center gap-2 bg-tsdark-700 p-1.5 rounded-xl border border-tsdark-600">
+            <button onclick="switchFaction('LSPD')" id="btn-fac-LSPD" class="faction-tab px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-blue-600 text-white shadow">
+                LSPD
+            </button>
+            <button onclick="switchFaction('LSCS')" id="btn-fac-LSCS" class="faction-tab px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-gray-400 hover:text-white">
+                LSCS
+            </button>
+            <button onclick="switchFaction('LSFR')" id="btn-fac-LSFR" class="faction-tab px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-gray-400 hover:text-white">
+                LSFR
+            </button>
+        </div>
+    </header>
+
+    <!-- Main App Container -->
+    <div class="flex-1 flex flex-col md:flex-row">
+        
+        <!-- Sidebar Navigation -->
+        <aside class="w-full md:w-64 bg-tsdark-800/60 border-r border-tsdark-600 p-4 flex md:flex-col justify-between gap-2 overflow-x-auto">
+            <nav class="flex md:flex-col gap-1 w-full">
+                <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-left theme-bg text-white shadow-lg">
+                    <i class="fa-solid fa-chart-pie w-5 text-center"></i>
+                    <span class="whitespace-nowrap">Dashboard</span>
+                </button>
+                <button onclick="switchTab('roster')" id="nav-roster" class="nav-btn flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-left text-gray-400 hover:text-white hover:bg-tsdark-700">
+                    <i class="fa-solid fa-users-gear w-5 text-center"></i>
+                    <span class="whitespace-nowrap">Personal & Roster</span>
+                </button>
+                <button onclick="switchTab('timekeeping')" id="nav-timekeeping" class="nav-btn flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-left text-gray-400 hover:text-white hover:bg-tsdark-700">
+                    <i class="fa-solid fa-clock-rotate-left w-5 text-center"></i>
+                    <span class="whitespace-nowrap">Zeiterfassung</span>
+                </button>
+                <button onclick="switchTab('deposits')" id="nav-deposits" class="nav-btn flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-left text-gray-400 hover:text-white hover:bg-tsdark-700">
+                    <i class="fa-solid fa-vault w-5 text-center"></i>
+                    <span class="whitespace-nowrap">Einzahlungs-Logs</span>
+                </button>
+                <button onclick="switchTab('academy')" id="nav-academy" class="nav-btn flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-left text-gray-400 hover:text-white hover:bg-tsdark-700">
+                    <i class="fa-solid fa-graduation-cap w-5 text-center"></i>
+                    <span class="whitespace-nowrap">Ausbildung & Akademie</span>
+                </button>
+                <button onclick="switchTab('laws')" id="nav-laws" class="nav-btn flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-left text-gray-400 hover:text-white hover:bg-tsdark-700">
+                    <i class="fa-solid fa-book-atlas w-5 text-center"></i>
+                    <span id="laws-nav-label" class="whitespace-nowrap">Gesetzbücher</span>
+                </button>
+                <button onclick="switchTab('applications')" id="nav-applications" class="nav-btn flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-left text-gray-400 hover:text-white hover:bg-tsdark-700">
+                    <i class="fa-solid fa-file-lines w-5 text-center"></i>
+                    <span class="whitespace-nowrap">Bewerbungen <span id="app-badge" class="ml-auto px-1.5 py-0.5 text-[10px] theme-bg text-white rounded-full">1</span></span>
+                </button>
+            </nav>
+
+            <!-- Bottom System Info -->
+            <div class="hidden md:block pt-4 border-t border-tsdark-600 text-xs text-gray-500 space-y-1">
+                <p class="flex justify-between"><span>Region:</span> <span class="text-gray-300" id="info-region">Los Santos</span></p>
+                <p class="flex justify-between"><span>Sicherheitsstufe:</span> <span class="theme-secondary-text font-semibold">ALPHA-1</span></p>
+            </div>
+        </aside>
+
+        <!-- Dynamic Content Area -->
+        <main class="flex-1 p-6 overflow-y-auto max-w-full">
+
+            <!-- TAB 1: DASHBOARD -->
+            <section id="tab-dashboard" class="tab-content space-y-6">
+                <div class="bg-gradient-to-r from-tsdark-800 to-tsdark-700 border border-tsdark-600 rounded-2xl p-6 relative overflow-hidden shadow-xl">
+                    <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                    <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div>
+                            <span class="text-xs uppercase tracking-widest theme-primary font-bold" id="dash-tag">Behörden Intranet Live</span>
+                            <h2 class="text-2xl font-bold font-orbitron text-white mt-1">Willkommen im System, Beamter</h2>
+                            <p class="text-gray-400 text-sm mt-1">Alle Dienststellen einsatzbereit. Alarmstatus: <span class="text-emerald-400 font-semibold">NORM</span>.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-tsdark-800 border border-tsdark-600 rounded-xl p-5 shadow-lg">
+                        <div class="flex items-center justify-between text-gray-400 mb-2">
+                            <span class="text-xs uppercase tracking-wider font-semibold">Aktive Beamte (Im Dienst)</span>
+                            <i class="fa-solid fa-user-shield theme-primary"></i>
+                        </div>
+                        <div class="text-3xl font-bold font-orbitron text-white" id="stat-active-officers">0</div>
+                        <div class="text-xs text-emerald-400 mt-2" id="stat-total-officers">Von 0 Gesamtbeamten</div>
+                    </div>
+                    <div class="bg-tsdark-800 border border-tsdark-600 rounded-xl p-5 shadow-lg">
+                        <div class="flex items-center justify-between text-gray-400 mb-2">
+                            <span class="text-xs uppercase tracking-wider font-semibold">Offene Bewerbungen</span>
+                            <i class="fa-solid fa-file-invoice theme-secondary-text"></i>
+                        </div>
+                        <div class="text-3xl font-bold font-orbitron text-white" id="stat-pending-apps">0</div>
+                        <div class="text-xs text-gray-400 mt-2">Warten auf Prüfung</div>
+                    </div>
+                    <div class="bg-tsdark-800 border border-tsdark-600 rounded-xl p-5 shadow-lg">
+                        <div class="flex items-center justify-between text-gray-400 mb-2">
+                            <span class="text-xs uppercase tracking-wider font-semibold">Akademie-Module</span>
+                            <i class="fa-solid fa-graduation-cap text-blue-500"></i>
+                        </div>
+                        <div class="text-3xl font-bold font-orbitron text-white" id="stat-academy-count">2</div>
+                        <div class="text-xs text-gray-400 mt-2">Ausbildung aktiv</div>
+                    </div>
+                    <div class="bg-tsdark-800 border border-tsdark-600 rounded-xl p-5 shadow-lg">
+                        <div class="flex items-center justify-between text-gray-400 mb-2">
+                            <span class="text-xs uppercase tracking-wider font-semibold">Behörden-Budget</span>
+                            <button onclick="openBudgetModal()" title="Budget bearbeiten" class="text-emerald-500 hover:text-emerald-400 transition-colors flex items-center gap-1.5 text-xs bg-emerald-500/10 px-2 py-1 rounded-lg border border-emerald-500/20">
+                                <i class="fa-solid fa-pen"></i> Anpassen
+                            </button>
+                        </div>
+                        <div class="text-3xl font-bold font-orbitron text-white" id="stat-budget">$0</div>
+                        <div class="text-xs text-emerald-400 mt-2">Inkl. Einzahlungs-Logs</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 2: ROSTER & UP-/DERANKS -->
+            <section id="tab-roster" class="tab-content space-y-6 hidden">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold font-orbitron text-white">Personal & Roster (<span id="roster-fac-title">LSPD</span>)</h2>
+                        <p class="text-sm text-gray-400">Verwalte Beamte, befördere sie im Rang (Up-Rank) oder degrudiere sie.</p>
+                    </div>
+                    <button onclick="openAddMemberModal()" class="theme-bg text-white font-medium px-4 py-2 rounded-xl text-sm transition-all flex items-center gap-2 shadow-lg">
+                        <i class="fa-solid fa-user-plus"></i> Beamten hinzufügen
+                    </button>
+                </div>
+
+                <div class="bg-tsdark-800 border border-tsdark-600 rounded-2xl shadow-xl overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-tsdark-700/50 border-b border-tsdark-600 text-xs font-orbitron uppercase text-gray-400 tracking-wider">
+                                    <th class="p-4">Dienstnummer / Name</th>
+                                    <th class="p-4">Abteilung</th>
+                                    <th class="p-4">Rang</th>
+                                    <th class="p-4">Dienststatus</th>
+                                    <th class="p-4 text-right">Aktionen (Up / Derank)</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-tsdark-600 text-sm" id="roster-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 3: ZEITERFASSUNG -->
+            <section id="tab-timekeeping" class="tab-content space-y-6 hidden">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold font-orbitron text-white">Zeiterfassung & Stempel-Logs (<span id="time-fac-title">LSPD</span>)</h2>
+                        <p class="text-sm text-gray-400">Übersicht der geleisteten Dienststunden pro Woche und Monat. Automatischer Stopp um 00:00 MEZ.</p>
+                    </div>
+                </div>
+
+                <div class="bg-tsdark-800 border border-tsdark-600 rounded-2xl shadow-xl overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-tsdark-700/50 border-b border-tsdark-600 text-xs font-orbitron uppercase text-gray-400 tracking-wider">
+                                    <th class="p-4">Beamter</th>
+                                    <th class="p-4">Aktueller Status</th>
+                                    <th class="p-4">Stunden diese Woche</th>
+                                    <th class="p-4">Stunden diesen Monat</th>
+                                    <th class="p-4 text-right">Stempel-Aktion</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-tsdark-600 text-sm" id="timekeeping-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 4: EINZAHLUNGS-LOGS -->
+            <section id="tab-deposits" class="tab-content space-y-6 hidden">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold font-orbitron text-white">Einzahlungs-Logs (<span id="deposits-fac-title">LSPD</span>)</h2>
+                        <p class="text-sm text-gray-400">Protokolliere Einzahlungen in die Staatskasse mit Zeitstempel und Beamtem.</p>
+                    </div>
+                    <button onclick="openDepositModal()" class="theme-bg text-white font-medium px-4 py-2 rounded-xl text-sm transition-all flex items-center gap-2 shadow-lg">
+                        <i class="fa-solid fa-plus"></i> Neue Einzahlung erfassen
+                    </button>
+                </div>
+
+                <div class="bg-tsdark-800 border border-tsdark-600 rounded-2xl shadow-xl overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-tsdark-700/50 border-b border-tsdark-600 text-xs font-orbitron uppercase text-gray-400 tracking-wider">
+                                    <th class="p-4">Datum & Uhrzeit</th>
+                                    <th class="p-4">Beamter / Einzahler</th>
+                                    <th class="p-4">Verwendungszweck</th>
+                                    <th class="p-4">Betrag</th>
+                                    <th class="p-4 text-right">Aktion</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-tsdark-600 text-sm" id="deposits-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 5: AUSBILDUNG & AKADEMIE -->
+            <section id="tab-academy" class="tab-content space-y-6 hidden">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold font-orbitron text-white">Ausbildung & Akademie (<span id="academy-fac-title">LSPD</span>)</h2>
+                        <p class="text-sm text-gray-400">Übersicht der erforderlichen Schulungen, Lehrgänge und Prüfungsstatus.</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="academy-container"></div>
+            </section>
+
+            <!-- TAB 6: GESETZBÜCHER / PROTOKOLLE -->
+            <section id="tab-laws" class="tab-content space-y-6 hidden">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold font-orbitron text-white" id="laws-header-title">Gesetzbuch & Vorschriften</h2>
+                        <p class="text-sm text-gray-400" id="laws-header-desc">Durchsuche Paragraphen, Strafen und Bußgelder des Tals.</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="laws-container"></div>
+            </section>
+
+            <!-- TAB 7: AKTIVE BEWERBUNGEN -->
+            <section id="tab-applications" class="tab-content space-y-6 hidden">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold font-orbitron text-white">Behörden-Bewerbungen</h2>
+                        <p class="text-sm text-gray-400">Prüfe eingegangene Bewerbungen für die aktive Fraktion.</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 gap-4" id="applications-container"></div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- MODAL: ADD MEMBER -->
+    <div id="modal-member" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-tsdark-800 border border-tsdark-600 rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-4">
+            <h3 class="font-orbitron font-bold text-lg text-white">Beamten aufnehmen</h3>
+            <div class="space-y-3">
+                <div>
+                    <label class="text-xs text-gray-400 mb-1 block">Dienstnummer & Name</label>
+                    <input type="text" id="new-member-name" placeholder="z. B. John Doe [#104]" class="w-full bg-tsdark-700 border border-tsdark-600 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none theme-ring">
+                </div>
+                <div>
+                    <label class="text-xs text-gray-400 mb-1 block">Abteilung</label>
+                    <input type="text" id="new-member-dept-display" disabled class="w-full bg-tsdark-700/50 border border-tsdark-600 rounded-xl px-4 py-2.5 text-sm text-gray-400 font-semibold" value="LSPD">
+                </div>
+                <div>
+                    <label class="text-xs text-gray-400 mb-1 block">Start-Rang</label>
+                    <input type="text" id="new-member-rank" placeholder="z. B. Officer / Anwärter" value="Anwärter" class="w-full bg-tsdark-700 border border-tsdark-600 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none theme-ring">
+                </div>
+            </div>
+            <div class="flex justify-end gap-3 pt-2">
+                <button onclick="closeModal('modal-member')" class="px-4 py-2 rounded-xl text-sm bg-tsdark-700 text-gray-300 hover:bg-tsdark-600">Abbrechen</button>
+                <button onclick="saveNewMember()" class="px-4 py-2 rounded-xl text-sm theme-bg text-white font-medium">Hinzufügen</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: EDIT BUDGET -->
+    <div id="modal-budget" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-tsdark-800 border border-tsdark-600 rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-4">
+            <h3 class="font-orbitron font-bold text-lg text-white">Behörden-Budget anpassen (<span id="budget-modal-fac">LSPD</span>)</h3>
+            <div class="space-y-3">
+                <div>
+                    <label class="text-xs text-gray-400 mb-1 block">Basis-Kontostand / Budget (in $)</label>
+                    <input type="number" id="new-budget-amount" placeholder="z. B. 150000" class="w-full bg-tsdark-700 border border-tsdark-600 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none theme-ring">
+                </div>
+            </div>
+            <div class="flex justify-end gap-3 pt-2">
+                <button onclick="closeModal('modal-budget')" class="px-4 py-2 rounded-xl text-sm bg-tsdark-700 text-gray-300 hover:bg-tsdark-600">Abbrechen</button>
+                <button onclick="saveNewBudget()" class="px-4 py-2 rounded-xl text-sm theme-bg text-white font-medium">Speichern</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: ADD DEPOSIT -->
+    <div id="modal-deposit" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-tsdark-800 border border-tsdark-600 rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-4">
+            <h3 class="font-orbitron font-bold text-lg text-white">Einzahlung erfassen</h3>
+            <div class="space-y-3">
+                <div>
+                    <label class="text-xs text-gray-400 mb-1 block">Name des Beamten / Einzahlers</label>
+                    <input type="text" id="deposit-officer" placeholder="z. B. Marcus Phoenix [#001]" class="w-full bg-tsdark-700 border border-tsdark-600 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none theme-ring">
+                </div>
+                <div>
+                    <label class="text-xs text-gray-400 mb-1 block">Betrag (in $)</label>
+                    <input type="number" id="deposit-amount" placeholder="z. B. 5000" class="w-full bg-tsdark-700 border border-tsdark-600 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none theme-ring">
+                </div>
+                <div>
+                    <label class="text-xs text-gray-400 mb-1 block">Verwendungszweck / Notiz</label>
+                    <input type="text" id="deposit-reason" placeholder="z. B. Beschlagnahmtes Geld / Staatskasse" class="w-full bg-tsdark-700 border border-tsdark-600 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none theme-ring">
+                </div>
+            </div>
+            <div class="flex justify-end gap-3 pt-2">
+                <button onclick="closeModal('modal-deposit')" class="px-4 py-2 rounded-xl text-sm bg-tsdark-700 text-gray-300 hover:bg-tsdark-600">Abbrechen</button>
+                <button onclick="saveNewDeposit()" class="px-4 py-2 rounded-xl text-sm theme-bg text-white font-medium">Einzahlen</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        const factionsConfig = {
+            LSPD: {
+                name: "LSPD",
+                fullName: "Los Santos Police Department",
+                region: "Los Santos City",
+                primary: "#1e40af", 
+                hover: "#1e3a8a",
+                secondary: "#f59e0b", 
+                badgeBg: "rgba(30, 64, 175, 0.15)",
+                badgeBorder: "rgba(30, 64, 175, 0.3)",
+                defaultBudget: 148500
+            },
+            LSCS: {
+                name: "LSCS",
+                fullName: "Los Santos County Sheriff",
+                region: "Blaine County & Valley Outskirts",
+                primary: "#365314", 
+                hover: "#27380d",
+                secondary: "#eab308", 
+                badgeBg: "rgba(54, 83, 20, 0.2)",
+                badgeBorder: "rgba(54, 83, 20, 0.4)",
+                defaultBudget: 122000
+            },
+            LSFR: {
+                name: "LSFR",
+                fullName: "Los Santos Fire & Rescue",
+                region: "County Medical & Emergency",
+                primary: "#b91c1c", 
+                hover: "#991b1b",
+                secondary: "#9ca3af", 
+                badgeBg: "rgba(185, 28, 28, 0.15)",
+                badgeBorder: "rgba(185, 28, 28, 0.3)",
+                defaultBudget: 165000
+            }
+        };
+
+        const defaultBudgets = { LSPD: 148500, LSCS: 122000, LSFR: 165000 };
+        const defaultDeposits = { LSPD: [], LSCS: [], LSFR: [] };
+
+        const defaultRoster = {
+            LSPD: [
+                { id: 1, name: "Marcus Phoenix [#001]", dept: "LSPD", rank: "Chief of Police", status: "Außer Dienst" },
+                { id: 2, name: "Sarah Connor [#012]", dept: "LSPD", rank: "Captain", status: "Außer Dienst" }
+            ],
+            LSCS: [
+                { id: 101, name: "Jax Teller [#101]", dept: "LSCS", rank: "Sheriff", status: "Außer Dienst" },
+                { id: 102, name: "Rick Grimes [#102]", dept: "LSCS", rank: "Undersheriff", status: "Außer Dienst" }
+            ],
+            LSFR: [
+                { id: 201, name: "Elena Fisher [#201]", dept: "LSFR", rank: "Fire Chief", status: "Außer Dienst" },
+                { id: 202, name: "Claire Redfield [#202]", dept: "LSFR", rank: "Paramedic Lead", status: "Außer Dienst" }
+            ]
+        };
+
+        const defaultTimekeeping = {
+            LSPD: {
+                1: { weeklySeconds: 14400, monthlySeconds: 57600, clockInTime: null },
+                2: { weeklySeconds: 18000, monthlySeconds: 72000, clockInTime: null }
+            },
+            LSCS: {
+                101: { weeklySeconds: 21600, monthlySeconds: 86400, clockInTime: null },
+                102: { weeklySeconds: 10800, monthlySeconds: 43200, clockInTime: null }
+            },
+            LSFR: {
+                201: { weeklySeconds: 25200, monthlySeconds: 95000, clockInTime: null },
+                202: { weeklySeconds: 19000, monthlySeconds: 68000, clockInTime: null }
+            }
+        };
+
+        const defaultApps = {
+            LSPD: [{ id: 1, name: "Leo Vance", dept: "LSPD", reason: "Möchte für Recht und Ordnung in City sorgen.", status: "Ausstehend", date: "Vor 2 Std" }],
+            LSCS: [{ id: 2, name: "Shane Walsh", dept: "LSCS", reason: "Patrouillen im County verstärken.", status: "Ausstehend", date: "Vor 4 Std" }],
+            LSFR: [{ id: 3, name: "Owen Hunt", dept: "LSFR", reason: "Erfahrener Notarzt sucht Rettungswache.", status: "Ausstehend", date: "Vor 1 Std" }]
+        };
+
+        const defaultAcademy = {
+            LSPD: [
+                { title: "Grundausbildung & Streifendienst", desc: "Einführung in Grundgesetze, Funkdisziplin und Streifenablauf.", status: "Absolviert" },
+                { title: "Schießtraining & Waffenkunde", desc: "Umgang mit Dienstpistole und Taser, Verhältnismäßigkeit.", status: "Ausstehend" }
+            ],
+            LSCS: [
+                { title: "County Grundausbildung", desc: "Besonderheiten im ländlichen Raum, Offroad-Verfolgung.", status: "Absolviert" },
+                { title: "Tierschutz & Jagdrecht", desc: "Überprüfung von Jagdlizenzen und Wilderei.", status: "Absolviert" }
+            ],
+            LSFR: [
+                { title: "Sanitätsdienst & Erste Hilfe", desc: "Traumaversorgung, Reanimation und Medikamentengabe.", status: "Absolviert" },
+                { title: "Atemschutzlehrgang", desc: "Einsatz unter schwerem Atemschutz bei Gebäudebränden.", status: "Absolviert" }
+            ]
+        };
+
+        const departmentLaws = {
+            LSPD: [
+                {
+                    category: "StGB & Einsatzvorschriften (LSPD)",
+                    icon: "fa-scale-balanced",
+                    items: [
+                        { code: "§ 1", title: "Körperverletzung", desc: "Vorsätzliche Verletzung der körperlichen Unversehrtheit.", penalty: "15 Monate / $5.000" },
+                        { code: "§ 2", title: "Schwerer Raub", desc: "Raubüberfall unter Verwendung von Schusswaffen.", penalty: "45 Monate / $15.000" }
+                    ]
+                }
+            ],
+            LSCS: [
+                {
+                    category: "County Gesetzbuch (LSCS)",
+                    icon: "fa-shield-halved",
+                    items: [
+                        { code: "§ C-1", title: "Wilderei im Schutzgebiet", desc: "Unautorisiertes Jagen in Blaine County.", penalty: "10 Monate / $4.000" },
+                        { code: "§ C-2", title: "Missachtung Sheriff-Anweisungen", desc: "Nichtbefolgen von Straßensperren im County.", penalty: "$3.000 Bußgeld" }
+                    ]
+                }
+            ],
+            LSFR: [
+                {
+                    category: "Dienstanweisungen & Brandschutz (LSFR)",
+                    icon: "fa-fire-extinguisher",
+                    items: [
+                        { code: "PRO-01", title: "Notfall-Triage", desc: "Priorisierung von Verletzten bei Massenanfällen von Notfällen.", penalty: "Medizinische Richtlinie" },
+                        { code: "PRO-02", title: "Brandschutzverordnung", desc: "Evakuierungs- und Löschprotokolle für Gewerbeobjekte.", penalty: "Sicherheitsauflage" }
+                    ]
+                }
+            ]
+        };
+
+        let currentFaction = "LSPD";
+        let currentActiveTab = "dashboard";
+
+        let budgets = JSON.parse(localStorage.getItem('ts_budgets')) || defaultBudgets;
+        let deposits = JSON.parse(localStorage.getItem('ts_deposits')) || defaultDeposits;
+        let rosters = JSON.parse(localStorage.getItem('ts_rosters')) || defaultRoster;
+        let timekeeping = JSON.parse(localStorage.getItem('ts_timekeeping')) || defaultTimekeeping;
+        let applications = JSON.parse(localStorage.getItem('ts_apps')) || defaultApps;
+        let academy = JSON.parse(localStorage.getItem('ts_academy')) || defaultAcademy;
+
+        window.onload = function() {
+            checkMidnightAutoCheckout();
+            switchFaction('LSPD');
+            setInterval(checkMidnightAutoCheckout, 30000);
+        };
+
+        function getCETDate() {
+            const now = new Date();
+            const cetString = now.toLocaleString("en-US", { timeZone: "Europe/Berlin" });
+            return new Date(cetString);
+        }
+
+        function checkMidnightAutoCheckout() {
+            let changed = false;
+            const nowCET = getCETDate();
+            const todayDateStr = nowCET.toDateString();
+
+            for (const fac in timekeeping) {
+                for (const memberId in timekeeping[fac]) {
+                    const record = timekeeping[fac][memberId];
+                    if (record.clockInTime) {
+                        const clockInDate = new Date(record.clockInTime);
+                        const clockInDateStr = clockInDate.toLocaleString("en-US", { timeZone: "Europe/Berlin" });
+                        const inDateObj = new Date(clockInDateStr);
+
+                        if (inDateObj.toDateString() !== todayDateStr) {
+                            const midnightEdge = new Date(inDateObj);
+                            midnightEdge.setHours(24, 0, 0, 0);
+
+                            const diffSec = Math.floor((midnightEdge.getTime() - inDateObj.getTime()) / 1000);
+                            if (diffSec > 0) {
+                                record.weeklySeconds += diffSec;
+                                record.monthlySeconds += diffSec;
+                            }
+                            record.clockInTime = null;
+                            changed = true;
+                        }
+                    }
+                }
+            }
+
+            if (changed) {
+                localStorage.setItem('ts_timekeeping', JSON.stringify(timekeeping));
+                renderDashboard();
+                if (currentActiveTab === 'timekeeping') renderTimekeeping();
+                if (currentActiveTab === 'roster') renderRoster();
+                showToast("Mitternacht (MEZ) erreicht: Aktive Schichten wurden automatisch abgeschlossen.", "info");
+            }
+        }
+
+        function formatCurrency(amount) {
+            return "$" + Number(amount).toLocaleString("de-DE");
+        }
+
+        function switchFaction(facCode) {
+            currentFaction = facCode;
+            const config = factionsConfig[facCode];
+            const root = document.documentElement;
+
+            root.style.setProperty('--primary-color', config.primary);
+            root.style.setProperty('--primary-hover', config.hover);
+            root.style.setProperty('--secondary-color', config.secondary);
+            root.style.setProperty('--badge-bg', config.badgeBg);
+            root.style.setProperty('--badge-border', config.badgeBorder);
+
+            document.getElementById('header-logo').innerText = config.name;
+            document.getElementById('header-logo').style.backgroundColor = config.primary;
+            document.getElementById('header-title').innerText = `${config.name} STATE NET`;
+            document.getElementById('header-subtitle').innerText = config.fullName + " Intranet";
+            document.getElementById('info-region').innerText = config.region;
+            document.getElementById('dash-tag').innerText = `${config.name} Intranet Live`;
+            document.getElementById('roster-fac-title').innerText = config.name;
+            document.getElementById('time-fac-title').innerText = config.name;
+            document.getElementById('deposits-fac-title').innerText = config.name;
+            document.getElementById('academy-fac-title').innerText = config.name;
+
+            if(facCode === 'LSFR') {
+                document.getElementById('laws-header-title').innerText = "Dienstanweisungen & Protokolle";
+                document.getElementById('laws-header-desc').innerText = "Medizinische Richtlinien und Brandschutzverordnungen.";
+                document.getElementById('laws-nav-label').innerText = "Protokolle";
+            } else {
+                document.getElementById('laws-header-title').innerText = "Gesetzbuch & Vorschriften";
+                document.getElementById('laws-header-desc').innerText = "Durchsuche Paragraphen, Strafen und Bußgelder des Tals.";
+                document.getElementById('laws-nav-label').innerText = "Gesetzbücher";
+            }
+
+            ['LSPD', 'LSCS', 'LSFR'].forEach(f => {
+                const btn = document.getElementById(`btn-fac-${f}`);
+                if(f === facCode) {
+                    btn.className = "faction-tab px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-white shadow";
+                    btn.style.backgroundColor = config.primary;
+                } else {
+                    btn.className = "faction-tab px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-gray-400 hover:text-white bg-transparent";
+                }
+            });
+
+            document.getElementById('new-member-dept-display').value = facCode;
+
+            switchTab(currentActiveTab);
+            showToast(`Behörde gewechselt zu ${config.fullName}`, 'info');
+        }
+
+        function switchTab(tabId) {
+            currentActiveTab = tabId;
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-btn').forEach(el => {
+                el.classList.remove('text-white', 'shadow-lg');
+                el.style.backgroundColor = '';
+                el.classList.add('text-gray-400', 'hover:text-white', 'hover:bg-tsdark-700');
+            });
+
+            const targetTab = document.getElementById(`tab-${tabId}`);
+            if(targetTab) targetTab.classList.remove('hidden');
+
+            const activeBtn = document.getElementById(`nav-${tabId}`);
+            if(activeBtn) {
+                activeBtn.classList.add('text-white', 'shadow-lg');
+                activeBtn.style.backgroundColor = factionsConfig[currentFaction].primary;
+                activeBtn.classList.remove('text-gray-400', 'hover:text-white', 'hover:bg-tsdark-700');
+            }
+
+            if(tabId === 'dashboard') renderDashboard();
+            if(tabId === 'roster') renderRoster();
+            if(tabId === 'timekeeping') renderTimekeeping();
+            if(tabId === 'deposits') renderDeposits();
+            if(tabId === 'academy') renderAcademy();
+            if(tabId === 'laws') renderLaws();
+            if(tabId === 'applications') renderApps();
+        }
+
+        function renderDashboard() {
+            const currentRoster = rosters[currentFaction] || [];
+            const currentApps = applications[currentFaction] || [];
+            const currentAcademy = academy[currentFaction] || [];
+            const facTimekeeping = timekeeping[currentFaction] || {};
+
+            const clockedInCount = currentRoster.filter(member => {
+                const record = facTimekeeping[member.id];
+                return record && record.clockInTime !== null;
+            }).length;
+
+            document.getElementById('stat-active-officers').innerText = clockedInCount;
+            document.getElementById('stat-total-officers').innerText = `Von ${currentRoster.length} Gesamtbeamten`;
+            document.getElementById('stat-pending-apps').innerText = currentApps.length;
+            document.getElementById('stat-academy-count').innerText = currentAcademy.length;
+            document.getElementById('app-badge').innerText = currentApps.length;
+
+            const baseBudget = budgets[currentFaction] !== undefined ? budgets[currentFaction] : factionsConfig[currentFaction].defaultBudget;
+            const facDeposits = deposits[currentFaction] || [];
+            const totalDeposited = facDeposits.reduce((sum, d) => sum + Number(d.amount), 0);
+            const totalBudget = baseBudget + totalDeposited;
+
+            document.getElementById('stat-budget').innerText = formatCurrency(totalBudget);
+        }
+
+        function renderRoster() {
+            const tbody = document.getElementById('roster-table-body');
+            tbody.innerHTML = '';
+            const currentRoster = rosters[currentFaction] || [];
+            const facTimekeeping = timekeeping[currentFaction] || {};
+
+            if(currentRoster.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-gray-400">Keine Beamten in dieser Abteilung eingetragen.</td></tr>`;
+                return;
+            }
+
+            currentRoster.forEach((member, index) => {
+                const isClockedIn = facTimekeeping[member.id] && facTimekeeping[member.id].clockInTime !== null;
+                const statusBadge = isClockedIn 
+                    ? `<span class="px-2 py-0.5 rounded-full text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Im Dienst</span>`
+                    : `<span class="px-2 py-0.5 rounded-full text-xs bg-gray-500/10 text-gray-400 border border-gray-500/20">Außer Dienst</span>`;
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-tsdark-700/30 transition-colors">
+                        <td class="p-4 font-medium text-white">${member.name}</td>
+                        <td class="p-4"><span class="text-xs px-2 py-1 rounded theme-badge font-semibold">${member.dept}</span></td>
+                        <td class="p-4 text-gray-300">${member.rank}</td>
+                        <td class="p-4">${statusBadge}</td>
+                        <td class="p-4 text-right space-x-2">
+                            <button onclick="promoteMember(${index})" title="Befördern" class="bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 px-3 py-1.5 rounded-lg text-xs font-semibold border border-blue-500/30 transition-all">
+                                <i class="fa-solid fa-arrow-up"></i> Up
+                            </button>
+                            <button onclick="demoteMember(${index})" title="Degradieren" class="bg-amber-600/20 text-amber-400 hover:bg-amber-600/30 px-3 py-1.5 rounded-lg text-xs font-semibold border border-amber-500/30 transition-all">
+                                <i class="fa-solid fa-arrow-down"></i> De
+                            </button>
+                            <button onclick="removeMember(${index})" title="Entlassen" class="bg-red-600/20 text-red-400 hover:bg-red-600/30 px-3 py-1.5 rounded-lg text-xs font-semibold border border-red-500/30 transition-all">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function formatSeconds(totalSeconds) {
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            return `${hours} Std. ${minutes} Min.`;
+        }
+
+        function renderTimekeeping() {
+            checkMidnightAutoCheckout();
+            const tbody = document.getElementById('timekeeping-table-body');
+            tbody.innerHTML = '';
+            const currentRoster = rosters[currentFaction] || [];
+
+            if(!timekeeping[currentFaction]) timekeeping[currentFaction] = {};
+
+            if(currentRoster.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-gray-400">Keine Personaldaten für die Zeiterfassung vorhanden.</td></tr>`;
+                return;
+            }
+
+            currentRoster.forEach(member => {
+                if(!timekeeping[currentFaction][member.id]) {
+                    timekeeping[currentFaction][member.id] = { weeklySeconds: 0, monthlySeconds: 0, clockInTime: null };
+                }
+                const record = timekeeping[currentFaction][member.id];
+                const isClockedIn = record.clockInTime !== null;
+
+                let statusBadge = `<span class="px-2.5 py-1 rounded-full text-xs bg-gray-500/10 text-gray-400 border border-gray-500/20">Ausgestempelt</span>`;
+                let actionBtn = `<button onclick="toggleClock(${member.id})" class="px-4 py-1.5 rounded-xl text-xs bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/30 border border-emerald-500/30 font-semibold flex items-center gap-1 ml-auto"><i class="fa-solid fa-right-to-bracket"></i> Einstempeln</button>`;
+
+                if(isClockedIn) {
+                    statusBadge = `<span class="px-2.5 py-1 rounded-full text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 animate-pulse font-semibold">Im Dienst (Eingestempelt)</span>`;
+                    actionBtn = `<button onclick="toggleClock(${member.id})" class="px-4 py-1.5 rounded-xl text-xs bg-red-600/20 text-red-400 hover:bg-red-600/30 border border-red-500/30 font-semibold flex items-center gap-1 ml-auto"><i class="fa-solid fa-right-from-bracket"></i> Ausstempeln</button>`;
+                }
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-tsdark-700/30 transition-colors">
+                        <td class="p-4 font-medium text-white">${member.name} <div class="text-xs text-gray-400">${member.rank}</div></td>
+                        <td class="p-4">${statusBadge}</td>
+                        <td class="p-4 font-orbitron text-gray-200">${formatSeconds(record.weeklySeconds)}</td>
+                        <td class="p-4 font-orbitron text-gray-200">${formatSeconds(record.monthlySeconds)}</td>
+                        <td class="p-4 text-right">${actionBtn}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        function renderDeposits() {
+            const tbody = document.getElementById('deposits-table-body');
+            tbody.innerHTML = '';
+            const facDeposits = deposits[currentFaction] || [];
+
+            if(facDeposits.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-gray-400">Bisher keine Einzahlungen protokolliert.</td></tr>`;
+                return;
+            }
+
+            // Neueste zuerst anzeigen
+            facDeposits.slice().reverse().forEach((dep, revIndex) => {
+                const originalIndex = facDeposits.length - 1 - revIndex;
+                tbody.innerHTML += `
+                    <tr class="hover:bg-tsdark-700/30 transition-colors">
+                        <td class="p-4 text-xs text-gray-400">${dep.timestamp}</td>
+                        <td class="p-4 font-medium text-white">${dep.officer}</td>
+                        <td class="p-4 text-gray-300">${dep.reason}</td>
+                        <td class="p-4 font-orbitron text-emerald-400 font-bold">+${formatCurrency(dep.amount)}</td>
+                        <td class="p-4 text-right">
+                            <button onclick="deleteDeposit(${originalIndex})" title="Log löschen" class="bg-red-600/20 text-red-400 hover:bg-red-600/30 px-3 py-1.5 rounded-lg text-xs font-semibold border border-red-500/30 transition-all">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function toggleClock(memberId) {
+            checkMidnightAutoCheckout();
+            if(!timekeeping[currentFaction]) timekeeping[currentFaction] = {};
+            if(!timekeeping[currentFaction][memberId]) {
+                timekeeping[currentFaction][memberId] = { weeklySeconds: 0, monthlySeconds: 0, clockInTime: null };
+            }
+
+            const record = timekeeping[currentFaction][memberId];
+            const now = getCETDate();
+
+            if(record.clockInTime === null) {
+                record.clockInTime = now.getTime();
+                showToast("Erfolgreich eingestempelt.", "success");
+            } else {
+                const diffSec = Math.floor((now.getTime() - record.clockInTime) / 1000);
+                if(diffSec > 0) {
+                    record.weeklySeconds += diffSec;
+                    record.monthlySeconds += diffSec;
+                }
+                record.clockInTime = null;
+                showToast(`Erfolgreich ausgestempelt. Dienstzeit erfasst: ${formatSeconds(diffSec)}`, "info");
+            }
+
+            localStorage.setItem('ts_timekeeping', JSON.stringify(timekeeping));
+            renderTimekeeping();
+            renderDashboard();
+        }
+
+        function renderAcademy() {
+            const container = document.getElementById('academy-container');
+            container.innerHTML = '';
+            const items = academy[currentFaction] || [];
+
+            items.forEach((mod, index) => {
+                let badgeColor = "bg-blue-500/10 text-blue-400 border-blue-500/20";
+                if(mod.status === "Absolviert") badgeColor = "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
+
+                container.innerHTML += `
+                    <div class="bg-tsdark-800 border border-tsdark-600 rounded-2xl p-5 shadow-lg flex flex-col justify-between gap-4">
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <h3 class="font-orbitron font-bold text-base text-white">${mod.title}</h3>
+                                <span class="px-2.5 py-0.5 rounded-full text-xs border ${badgeColor}">${mod.status}</span>
+                            </div>
+                            <p class="text-sm text-gray-400">${mod.desc}</p>
+                        </div>
+                        <div class="flex justify-end gap-2 pt-2 border-t border-tsdark-600/50">
+                            <button onclick="updateAcademyStatus(${index}, 'Absolviert')" class="px-3 py-1.5 rounded-lg text-xs bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/30 border border-emerald-500/30">Bestanden</button>
+                            <button onclick="updateAcademyStatus(${index}, 'Ausstehend')" class="px-3 py-1.5 rounded-lg text-xs bg-amber-600/20 text-amber-400 hover:bg-amber-600/30 border border-amber-500/30">Zurücksetzen</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function updateAcademyStatus(index, newStatus) {
+            if(!academy[currentFaction]) academy[currentFaction] = [];
+            academy[currentFaction][index].status = newStatus;
+            localStorage.setItem('ts_academy', JSON.stringify(academy));
+            renderAcademy();
+            showToast("Akademie-Status aktualisiert", "success");
+        }
+
+        function renderLaws() {
+            const container = document.getElementById('laws-container');
+            container.innerHTML = '';
+            const lawsList = departmentLaws[currentFaction] || [];
+
+            lawsList.forEach(group => {
+                let itemsHtml = '';
+                group.items.forEach(item => {
+                    itemsHtml += `
+                        <div class="bg-tsdark-700/30 border border-tsdark-600/60 rounded-xl p-4 flex flex-col justify-between gap-2">
+                            <div class="flex items-center justify-between">
+                                <span class="font-orbitron font-bold text-xs theme-secondary-text">${item.code}</span>
+                                <span class="text-xs px-2 py-0.5 rounded bg-tsdark-600 text-gray-300 font-semibold">${item.penalty}</span>
+                            </div>
+                            <h4 class="font-bold text-sm text-white">${item.title}</h4>
+                            <p class="text-xs text-gray-400">${item.desc}</p>
+                        </div>
+                    `;
+                });
+
+                container.innerHTML += `
+                    <div class="bg-tsdark-800 border border-tsdark-600 rounded-2xl p-5 shadow-lg space-y-4">
+                        <div class="flex items-center gap-3 border-b border-tsdark-600 pb-3">
+                            <div class="w-9 h-9 rounded-xl theme-badge flex items-center justify-center text-sm font-bold">
+                                <i class="fa-solid ${group.icon}"></i>
+                            </div>
+                            <h3 class="font-orbitron font-bold text-sm text-white">${group.category}</h3>
+                        </div>
+                        <div class="space-y-3">
+                            ${itemsHtml}
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function renderApps() {
+            const container = document.getElementById('applications-container');
+            container.innerHTML = '';
+            const currentApps = applications[currentFaction] || [];
+
+            if(currentApps.length === 0) {
+                container.innerHTML = `<div class="bg-tsdark-800 border border-tsdark-600 rounded-2xl p-6 text-center text-gray-400">Keine offenen Bewerbungen für diese Abteilung vorliegend.</div>`;
+                return;
+            }
+
+            currentApps.forEach((app, index) => {
+                container.innerHTML += `
+                    <div class="bg-tsdark-800 border border-tsdark-600 rounded-2xl p-5 shadow-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <h3 class="font-orbitron font-bold text-base text-white">${app.name}</h3>
+                                <span class="text-xs px-2 py-0.5 rounded theme-badge font-semibold">${app.dept}</span>
+                                <span class="text-xs text-gray-400">(${app.date})</span>
+                            </div>
+                            <p class="text-sm text-gray-300">${app.reason}</p>
+                        </div>
+                        <div class="flex items-center gap-2 w-full md:w-auto justify-end">
+                            <button onclick="approveApp(${index})" class="px-4 py-2 rounded-xl text-xs bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/30 border border-emerald-500/30 font-semibold flex items-center gap-1.5">
+                                <i class="fa-solid fa-check"></i> Annehmen
+                            </button>
+                            <button onclick="rejectApp(${index})" class="px-4 py-2 rounded-xl text-xs bg-red-600/20 text-red-400 hover:bg-red-600/30 border border-red-500/30 font-semibold flex items-center gap-1.5">
+                                <i class="fa-solid fa-xmark"></i> Ablehnen
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function openAddMemberModal() { document.getElementById('modal-member').classList.remove('hidden'); }
+        function openBudgetModal() {
+            document.getElementById('budget-modal-fac').innerText = currentFaction;
+            const currentVal = budgets[currentFaction] !== undefined ? budgets[currentFaction] : factionsConfig[currentFaction].defaultBudget;
+            document.getElementById('new-budget-amount').value = currentVal;
+            document.getElementById('modal-budget').classList.remove('hidden');
+        }
+        function openDepositModal() {
+            document.getElementById('deposit-officer').value = "";
+            document.getElementById('deposit-amount').value = "";
+            document.getElementById('deposit-reason').value = "";
+            document.getElementById('modal-deposit').classList.remove('hidden');
+        }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+        function saveNewBudget() {
+            const inputVal = document.getElementById('new-budget-amount').value.trim();
+            const parsedVal = parseFloat(inputVal);
+
+            if (isNaN(parsedVal) || parsedVal < 0) {
+                showToast("Bitte einen gültigen positiven Betrag eingeben.", "error");
+                return;
+            }
+
+            budgets[currentFaction] = parsedVal;
+            localStorage.setItem('ts_budgets', JSON.stringify(budgets));
+            closeModal('modal-budget');
+            renderDashboard();
+            showToast(`Basis-Budget für ${currentFaction} auf ${formatCurrency(parsedVal)} festgelegt.`, "success");
+        }
+
+        function saveNewDeposit() {
+            const officer = document.getElementById('deposit-officer').value.trim();
+            const amountVal = parseFloat(document.getElementById('deposit-amount').value);
+            const reason = document.getElementById('deposit-reason').value.trim() || "Staatskasse Einzahlung";
+
+            if (!officer || isNaN(amountVal) || amountVal <= 0) {
+                showToast("Bitte Name und einen gültigen Betrag angeben.", "error");
+                return;
+            }
+
+            const nowCET = getCETDate();
+            const timestamp = nowCET.toLocaleDateString("de-DE", { day: '2-digit', month: '2-digit', year: 'numeric' }) + " um " + nowCET.toLocaleTimeString("de-DE", { hour: '2-digit', minute: '2-digit' }) + " Uhr";
+
+            if(!deposits[currentFaction]) deposits[currentFaction] = [];
+            deposits[currentFaction].push({ timestamp, officer, reason, amount: amountVal });
+
+            localStorage.setItem('ts_deposits', JSON.stringify(deposits));
+            closeModal('modal-deposit');
+
+            if (currentActiveTab === 'deposits') renderDeposits();
+            renderDashboard();
+            showToast(`Einzahlung über ${formatCurrency(amountVal)} erfolgreich verbucht.`, "success");
+        }
+
+        function deleteDeposit(index) {
+            if(!deposits[currentFaction]) return;
+            deposits[currentFaction].splice(index, 1);
+            localStorage.setItem('ts_deposits', JSON.stringify(deposits));
+            renderDeposits();
+            renderDashboard();
+            showToast("Einzahlungs-Log gelöscht und Budget angepasst.", "info");
+        }
+
+        function saveNewMember() {
+            const name = document.getElementById('new-member-name').value.trim();
+            const rank = document.getElementById('new-member-rank').value.trim();
+            if(!name) { showToast("Bitte Namen und Dienstnummer angeben", "error"); return; }
+
+            const newId = Date.now();
+            if(!rosters[currentFaction]) rosters[currentFaction] = [];
+            rosters[currentFaction].push({ id: newId, name, dept: currentFaction, rank: rank || 'Anwärter', status: 'Außer Dienst' });
+            
+            if(!timekeeping[currentFaction]) timekeeping[currentFaction] = {};
+            timekeeping[currentFaction][newId] = { weeklySeconds: 0, monthlySeconds: 0, clockInTime: null };
+
+            localStorage.setItem('ts_rosters', JSON.stringify(rosters));
+            localStorage.setItem('ts_timekeeping', JSON.stringify(timekeeping));
+
+            closeModal('modal-member');
+            document.getElementById('new-member-name').value = '';
+            renderRoster();
+            renderDashboard();
+            showToast("Beamter erfolgreich aufgenommen", "success");
+        }
+
+        function promoteMember(index) {
+            const member = rosters[currentFaction][index];
+            member.rank = member.rank + " (Befördert)";
+            localStorage.setItem('ts_rosters', JSON.stringify(rosters));
+            renderRoster();
+            showToast(`Rang von ${member.name} erhöht`, "success");
+        }
+
+        function demoteMember(index) {
+            const member = rosters[currentFaction][index];
+            member.rank = "Zurückgestuft";
+            localStorage.setItem('ts_rosters', JSON.stringify(rosters));
+            renderRoster();
+            showToast(`Rang von ${member.name} herabgestuft`, "info");
+        }
+
+        function removeMember(index) {
+            const member = rosters[currentFaction][index];
+            if(timekeeping[currentFaction]) {
+                delete timekeeping[currentFaction][member.id];
+                localStorage.setItem('ts_timekeeping', JSON.stringify(timekeeping));
+            }
+            rosters[currentFaction].splice(index, 1);
+            localStorage.setItem('ts_rosters', JSON.stringify(rosters));
+            renderRoster();
+            renderDashboard();
+            showToast(`${member.name} aus dem Roster entfernt`, "info");
+        }
+
+        function approveApp(index) {
+            const app = applications[currentFaction][index];
+            applications[currentFaction].splice(index, 1);
+
+            const newId = Date.now();
+            if(!rosters[currentFaction]) rosters[currentFaction] = [];
+            rosters[currentFaction].push({ id: newId, name: app.name, dept: currentFaction, rank: 'Anwärter', status: 'Außer Dienst' });
+
+            if(!timekeeping[currentFaction]) timekeeping[currentFaction] = {};
+            timekeeping[currentFaction][newId] = { weeklySeconds: 0, monthlySeconds: 0, clockInTime: null };
+
+            localStorage.setItem('ts_apps', JSON.stringify(applications));
+            localStorage.setItem('ts_rosters', JSON.stringify(rosters));
+            localStorage.setItem('ts_timekeeping', JSON.stringify(timekeeping));
+
+            renderApps();
+            renderRoster();
+            renderDashboard();
+            showToast(`Bewerbung von ${app.name} angenommen`, "success");
+        }
+
+        function rejectApp(index) {
+            const app = applications[currentFaction][index];
+            applications[currentFaction].splice(index, 1);
+            localStorage.setItem('ts_apps', JSON.stringify(applications));
+
+            renderApps();
+            renderDashboard();
+            showToast(`Bewerbung von ${app.name} abgelehnt`, "info");
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            let bg = "bg-blue-600";
+            if(type === 'success') bg = "bg-emerald-600";
+            if(type === 'error') bg = "bg-red-600";
+
+            toast.className = `${bg} text-white text-xs px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 pointer-events-auto transition-all transform translate-y-2 opacity-0`;
+            toast.innerHTML = `<i class="fa-solid fa-circle-info"></i> ${message}`;
+            
+            container.appendChild(toast);
+            setTimeout(() => { toast.classList.remove('translate-y-2', 'opacity-0'); }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
