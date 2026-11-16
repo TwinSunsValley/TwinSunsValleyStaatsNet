@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="de" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Twin Suns Valley - State Network</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        tsdark: {
+                            900: '#090a0f',
+                            800: '#13151f',
+                            700: '#1e2230',
+                            600: '#2a2f45'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter & Orbitron -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #090a0f; }
+        ::-webkit-scrollbar-thumb { background: #2a2f45; border-radius: 3px; }
+        
+        :root {
+            --primary-color: #1e40af;
+            --primary-hover: #1e3a8a;
+            --secondary-color: #f59e0b;
+            --badge-bg: rgba(30, 64, 175, 0.15);
+            --badge-border: rgba(30, 64, 175, 0.3);
+        }
+        
+        .theme-primary { color: var(--primary-color); }
+        .theme-bg { background-color: var(--primary-color); }
+        .theme-bg:hover { background-color: var(--primary-hover); }
+        .theme-border { border-color: var(--primary-color); }
+        .theme-ring:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 2px var(--badge-border); }
+        .theme-badge { background-color: var(--badge-bg); border-color: var(--badge-border); color: var(--primary-color); }
+        .theme-secondary-text { color: var(--secondary-color); }
+    </style>
+</head>
+<body class="bg-tsdark-900 text-gray-100 min-h-screen flex flex-col selection:bg-blue-500 selection:text-white">
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- Top Header Bar -->
+    <header id="header-bar" class="bg-tsdark-800 border-b border-tsdark-600 px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4 sticky top-0 z-40 shadow-xl transition-colors duration-300">
+        <div class="flex items-center gap-3">
+            <div id="header-logo" class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg text-white font-black text-xl font-orbitron transition-colors duration-300">
+                LSPD
+            </div>
+            <div>
+                <h1 class="font-orbitron font-bold text-lg tracking-wider text-white flex items-center gap-2">
+                    <span id="header-title">LSPD STATE NET</span> 
+                    <span id="header-badge" class="text-xs px-2 py-0.5 rounded theme-badge font-semibold">HQ TERMINAL</span>
+                </h1>
+                <p class="text-xs text-gray-400" id="header-subtitle">Los Santos Police Department Intranet</p>
+            </div>
+        </div>
+
+        <!-- Faction Selector Tabs -->
+        <div class="flex items-center gap-2 bg-tsdark-700 p-1.5 rounded-xl border border-tsdark-600">
+            <button onclick="switchFaction('LSPD')" id="btn-fac-LSPD" class="faction-tab px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-blue-600 text-white shadow">
+                LSPD
+            </button>
+            <button onclick="switchFaction('LSCS')" id="btn-fac-LSCS" class="faction-tab px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-gray-400 hover:text-white">
+                LSCS
+            </button>
+            <button onclick="switchFaction('LSFR')" id="btn-fac-LSFR" class="faction-tab px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-gray-400 hover:text-white">
+                LSFR
+            </button>
+        </div>
+    </header>
+
+    <!-- Main App Container -->
+    <div class="flex-1 flex flex-col md:flex-row">
+        
+        <!-- Sidebar Navigation -->
+        <aside class="w-full md:w-64 bg-tsdark-800/60 border-r border-tsdark-600 p-4 flex md:flex-col justify-between gap-2 overflow-x-auto">
+            <nav class="flex md:flex-col gap-1 w-full">
+                <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-left theme-bg text-white shadow-lg">
+                    <i class="fa-solid fa-chart-pie w-5 text-center"></i>
+                    <span class="whitespace-nowrap">Dashboard</span>
+                </button>
+                <button onclick="switchTab('roster')" id="nav-roster" class="nav-btn flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-left text-gray-400 hover:text-white hover:bg-tsdark-700">
+                    <i class="fa-solid fa-users-gear w-5 text-center"></i>
+                    <span class="whitespace-nowrap">Personal & Roster</span>
+                </button>
+                <button onclick="switchTab('academy')" id="nav-academy" class="nav-btn flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-left text-gray-400 hover:text-white hover:bg-tsdark-700">
+                    <i class="fa-solid fa-graduation-cap w-5 text-center"></i>
+                    <span class="whitespace-nowrap">Ausbildung & Akademie</span>
+                </button>
+                <button onclick="switchTab('laws')" id="nav-laws" class="nav-btn flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-left text-gray-400 hover:text-white hover:bg-tsdark-700">
+                    <i class="fa-solid fa-book-atlas w-5 text-center"></i>
+                    <span id="laws-nav-label" class="whitespace-nowrap">Gesetzbücher</span>
+                </button>
+                <button onclick="switchTab('applications')" id="nav-applications" class="nav-btn flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-left text-gray-400 hover:text-white hover:bg-tsdark-700">
+                    <i class="fa-solid fa-file-lines w-5 text-center"></i>
+                    <span class="whitespace-nowrap">Bewerbungen <span id="app-badge" class="ml-auto px-1.5 py-0.5 text-[10px] theme-bg text-white rounded-full">1</span></span>
+                </button>
+                <button onclick="switchTab('dispatch')" id="nav-dispatch" class="nav-btn flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-left text-gray-400 hover:text-white hover:bg-tsdark-700">
+                    <i class="fa-solid fa-tower-broadcast w-5 text-center"></i>
+                    <span class="whitespace-nowrap">Dienst-Logs / Dispatch</span>
+                </button>
+            </nav>
+
+            <!-- Bottom System Info -->
+            <div class="hidden md:block pt-4 border-t border-tsdark-600 text-xs text-gray-500 space-y-1">
+                <p class="flex justify-between"><span>Region:</span> <span class="text-gray-300" id="info-region">Los Santos</span></p>
+                <p class="flex justify-between"><span>Sicherheitsstufe:</span> <span class="theme-secondary-text font-semibold">ALPHA-1</span></p>
+            </div>
+        </aside>
+
+        <!-- Dynamic Content Area -->
+        <main class="flex-1 p-6 overflow-y-auto max-w-full">
+
+            <!-- TAB 1: DASHBOARD -->
+            <section id="tab-dashboard" class="tab-content space-y-6">
+                <div class="bg-gradient-to-r from-tsdark-800 to-tsdark-700 border border-tsdark-600 rounded-2xl p-6 relative overflow-hidden shadow-xl">
+                    <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                    <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div>
+                            <span class="text-xs uppercase tracking-widest theme-primary font-bold" id="dash-tag">Behörden Intranet Live</span>
+                            <h2 class="text-2xl font-bold font-orbitron text-white mt-1">Willkommen im System, Beamter</h2>
+                            <p class="text-gray-400 text-sm mt-1">Alle Dienststellen einsatzbereit. Alarmstatus: <span class="text-emerald-400 font-semibold">NORM</span>.</p>
+                        </div>
+                        <button onclick="openNewLogModal()" class="theme-bg text-white font-medium px-5 py-2.5 rounded-xl shadow-lg text-sm transition-all flex items-center gap-2">
+                            <i class="fa-solid fa-plus"></i> Dienst-Log erstellen
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-tsdark-800 border border-tsdark-600 rounded-xl p-5 shadow-lg">
+                        <div class="flex items-center justify-between text-gray-400 mb-2">
+                            <span class="text-xs uppercase tracking-wider font-semibold">Aktive Beamte</span>
+                            <i class="fa-solid fa-user-shield theme-primary"></i>
+                        </div>
+                        <div class="text-3xl font-bold font-orbitron text-white" id="stat-active-officers">0</div>
+                        <div class="text-xs text-emerald-400 mt-2">Personalstärke stabil</div>
+                    </div>
+                    <div class="bg-tsdark-800 border border-tsdark-600 rounded-xl p-5 shadow-lg">
+                        <div class="flex items-center justify-between text-gray-400 mb-2">
+                            <span class="text-xs uppercase tracking-wider font-semibold">Offene Bewerbungen</span>
+                            <i class="fa-solid fa-file-invoice theme-secondary-text"></i>
+                        </div>
+                        <div class="text-3xl font-bold font-orbitron text-white" id="stat-pending-apps">0</div>
+                        <div class="text-xs text-gray-400 mt-2">Warten auf Prüfung</div>
+                    </div>
+                    <div class="bg-tsdark-800 border border-tsdark-600 rounded-xl p-5 shadow-lg">
+                        <div class="flex items-center justify-between text-gray-400 mb-2">
+                            <span class="text-xs uppercase tracking-wider font-semibold">Akademie-Module</span>
+                            <i class="fa-solid fa-graduation-cap text-blue-500"></i>
+                        </div>
+                        <div class="text-3xl font-bold font-orbitron text-white">3</div>
+                        <div class="text-xs text-gray-400 mt-2">Ausbildung aktiv</div>
+                    </div>
+                    <div class="bg-tsdark-800 border border-tsdark-600 rounded-xl p-5 shadow-lg">
+                        <div class="flex items-center justify-between text-gray-400 mb-2">
+                            <span class="text-xs uppercase tracking-wider font-semibold">Behörden-Budget</span>
+                            <i class="fa-solid fa-vault text-emerald-500"></i>
+                        </div>
+                        <div class="text-3xl font-bold font-orbitron text-white" id="stat-budget">$0</div>
+                        <div class="text-xs text-emerald-400 mt-2">Staatssubvention aktiv</div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity Feed Preview -->
+                <div class="bg-tsdark-800 border border-tsdark-600 rounded-2xl p-6 shadow-lg">
+                    <h3 class="font-orbitron font-bold text-base text-white mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-bolt theme-primary"></i> Letzte Behörden-Aktivitäten
+                    </h3>
+                    <div class="space-y-3" id="recent-activity-list"></div>
+                </div>
+            </section>
+
+            <!-- TAB 2: ROSTER & UP-/DERANKS -->
+            <section id="tab-roster" class="tab-content space-y-6 hidden">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold font-orbitron text-white">Personal & Roster (<span id="roster-fac-title">LSPD</span>)</h2>
+                        <p class="text-sm text-gray-400">Verwalte Beamte, befördere sie im Rang (Up-Rank) oder degrudiere sie.</p>
+                    </div>
+                    <button onclick="openAddMemberModal()" class="theme-bg text-white font-medium px-4 py-2 rounded-xl text-sm transition-all flex items-center gap-2 shadow-lg">
+                        <i class="fa-solid fa-user-plus"></i> Beamten hinzufügen
+                    </button>
+                </div>
+
+                <div class="bg-tsdark-800 border border-tsdark-600 rounded-2xl shadow-xl overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-tsdark-700/50 border-b border-tsdark-600 text-xs font-orbitron uppercase text-gray-400 tracking-wider">
+                                    <th class="p-4">Dienstnummer / Name</th>
+                                    <th class="p-4">Abteilung</th>
+                                    <th class="p-4">Rang</th>
+                                    <th class="p-4">Status</th>
+                                    <th class="p-4 text-right">Aktionen (Up / Derank)</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-tsdark-600 text-sm" id="roster-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 3: AUSBILDUNG & AKADEMIE -->
+            <section id="tab-academy" class="tab-content space-y-6 hidden">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold font-orbitron text-white">Ausbildung & Akademie (<span id="academy-fac-title">LSPD</span>)</h2>
+                        <p class="text-sm text-gray-400">Übersicht der erforderlichen Schulungen, Lehrgänge und Prüfungsstatus.</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="academy-container"></div>
+            </section>
+
+            <!-- TAB 4: GESETZBÜCHER / PROTOKOLLE -->
+            <section id="tab-laws" class="tab-content space-y-6 hidden">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold font-orbitron text-white" id="laws-header-title">Gesetzbuch & Vorschriften</h2>
+                        <p class="text-sm text-gray-400" id="laws-header-desc">Durchsuche Paragraphen, Strafen und Bußgelder des Tals.</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="laws-container"></div>
+            </section>
+
+            <!-- TAB 5: AKTIVE BEWERBUNGEN -->
+            <section id="tab-applications" class="tab-content space-y-6 hidden">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold font-orbitron text-white">Behörden-Bewerbungen</h2>
+                        <p class="text-sm text-gray-400">Prüfe eingegangene Bewerbungen für die aktive Fraktion.</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 gap-4" id="applications-container"></div>
+            </section>
+
+            <!-- TAB 6: DIENST-LOGS / DISPATCH -->
+            <section id="tab-dispatch" class="tab-content space-y-6 hidden">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold font-orbitron text-white">Dienst-Logs & Dispatch</h2>
+                        <p class="text-sm text-gray-400">Öffentlicher Funkspruch- und Notizkanal für alle Beamten.</p>
+                    </div>
+                    <button onclick="openNewLogModal()" class="theme-bg text-white font-medium px-4 py-2 rounded-xl text-sm transition-all flex items-center gap-2 shadow-lg">
+                        <i class="fa-solid fa-broadcast-tower"></i> Funkspruch absetzen
+                    </button>
+                </div>
+
+                <div class="bg-tsdark-800 border border-tsdark-600 rounded-2xl p-6 shadow-xl space-y-4" id="dispatch-feed"></div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- MODAL: ADD MEMBER -->
+    <div id="modal-member" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-tsdark-800 border border-tsdark-600 rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-4">
+            <h3 class="font-orbitron font-bold text-lg text-white">Beamten aufnehmen</h3>
+            <div class="space-y-3">
+                <div>
+                    <label class="text-xs text-gray-400 mb-1 block">Dienstnummer & Name</label>
+                    <input type="text" id="new-member-name" placeholder="z. B. John Doe [#104]" class="w-full bg-tsdark-700 border border-tsdark-600 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none theme-ring">
+                </div>
+                <div>
+                    <label class="text-xs text-gray-400 mb-1 block">Abteilung</label>
+                    <input type="text" id="new-member-dept-display" disabled class="w-full bg-tsdark-700/50 border border-tsdark-600 rounded-xl px-4 py-2.5 text-sm text-gray-400 font-semibold" value="LSPD">
+                </div>
+                <div>
+                    <label class="text-xs text-gray-400 mb-1 block">Start-Rang</label>
+                    <input type="text" id="new-member-rank" placeholder="z. B. Officer / Anwärter" value="Anwärter" class="w-full bg-tsdark-700 border border-tsdark-600 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none theme-ring">
+                </div>
+            </div>
+            <div class="flex justify-end gap-3 pt-2">
+                <button onclick="closeModal('modal-member')" class="px-4 py-2 rounded-xl text-sm bg-tsdark-700 text-gray-300 hover:bg-tsdark-600">Abbrechen</button>
+                <button onclick="saveNewMember()" class="px-4 py-2 rounded-xl text-sm theme-bg text-white font-medium">Hinzufügen</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: NEW LOG / DISPATCH -->
+    <div id="modal-log" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-tsdark-800 border border-tsdark-600 rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-4">
+            <h3 class="font-orbitron font-bold text-lg text-white">Neuer Funkspruch / Dienst-Log</h3>
+            <div class="space-y-3">
+                <div>
+                    <label class="text-xs text-gray-400 mb-1 block">Titel / Betreff</label>
+                    <input type="text" id="new-log-title" placeholder="z. B. Streife Bezirk Alpha" class="w-full bg-tsdark-700 border border-tsdark-600 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none theme-ring">
+                </div>
+                <div>
+                    <label class="text-xs text-gray-400 mb-1 block">Nachricht / Details</label>
+                    <textarea id="new-log-desc" rows="3" placeholder="Beschreibung der Situation..." class="w-full bg-tsdark-700 border border-tsdark-600 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none theme-ring"></textarea>
+                </div>
+            </div>
+            <div class="flex justify-end gap-3 pt-2">
+                <button onclick="closeModal('modal-log')" class="px-4 py-2 rounded-xl text-sm bg-tsdark-700 text-gray-300 hover:bg-tsdark-600">Abbrechen</button>
+                <button onclick="saveNewLog()" class="px-4 py-2 rounded-xl text-sm theme-bg text-white font-medium">Absenden</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        const factionsConfig = {
+            LSPD: {
+                name: "LSPD",
+                fullName: "Los Santos Police Department",
+                region: "Los Santos City",
+                primary: "#1e40af", // Dunkelblau
+                hover: "#1e3a8a",
+                secondary: "#f59e0b", // Gold
+                badgeBg: "rgba(30, 64, 175, 0.15)",
+                badgeBorder: "rgba(30, 64, 175, 0.3)",
+                budget: "$148.500"
+            },
+            LSCS: {
+                name: "LSCS",
+                fullName: "Los Santos County Sheriff",
+                region: "Blaine County & Valley Outskirts",
+                primary: "#365314", // Olivgrün
+                hover: "#27380d",
+                secondary: "#eab308", // Gold
+                badgeBg: "rgba(54, 83, 20, 0.2)",
+                badgeBorder: "rgba(54, 83, 20, 0.4)",
+                budget: "$122.000"
+            },
+            LSFR: {
+                name: "LSFR",
+                fullName: "Los Santos Fire & Rescue",
+                region: "County Medical & Emergency",
+                primary: "#b91c1c", // Dunkles Rot
+                hover: "#991b1b",
+                secondary: "#9ca3af", // Silber
+                badgeBg: "rgba(185, 28, 28, 0.15)",
+                badgeBorder: "rgba(185, 28, 28, 0.3)",
+                budget: "$165.000"
+            }
+        };
+
+        const defaultRoster = {
+            LSPD: [
+                { id: 1, name: "Marcus Phoenix [#001]", dept: "LSPD", rank: "Chief of Police", status: "Im Dienst" },
+                { id: 2, name: "Sarah Connor [#012]", dept: "LSPD", rank: "Captain", status: "Im Dienst" }
+            ],
+            LSCS: [
+                { id: 101, name: "Jax Teller [#101]", dept: "LSCS", rank: "Sheriff", status: "Im Dienst" },
+                { id: 102, name: "Rick Grimes [#102]", dept: "LSCS", rank: "Undersheriff", status: "Im Dienst" }
+            ],
+            LSFR: [
+                { id: 201, name: "Elena Fisher [#201]", dept: "LSFR", rank: "Fire Chief", status: "Im Dienst" },
+                { id: 202, name: "Claire Redfield [#202]", dept: "LSFR", rank: "Paramedic Lead", status: "Im Dienst" }
+            ]
+        };
+
+        const defaultApps = {
+            LSPD: [{ id: 1, name: "Leo Vance", dept: "LSPD", reason: "Möchte für Recht und Ordnung in City sorgen.", status: "Ausstehend", date: "Vor 2 Std" }],
+            LSCS: [{ id: 2, name: "Shane Walsh", dept: "LSCS", reason: "Patrouillen im County verstärken.", status: "Ausstehend", date: "Vor 4 Std" }],
+            LSFR: [{ id: 3, name: "Owen Hunt", dept: "LSFR", reason: "Erfahrener Notarzt sucht Rettungswache.", status: "Ausstehend", date: "Vor 1 Std" }]
+        };
+
+        const defaultLogs = {
+            LSPD: [{ id: 1, author: "Marcus Phoenix", title: "Banküberfall City abgewehrt", desc: "Täter festgenommen, Geiseln sicher.", time: "Vor 15 Min" }],
+            LSCS: [{ id: 2, author: "Jax Teller", title: "Highway 68 Kontrollen", desc: "Verkehrskontrolle durchgeführt, 3 Verwarnungen.", time: "Vor 35 Min" }],
+            LSFR: [{ id: 3, author: "Elena Fisher", title: "Brandbekämpfung Paleto Forest", desc: "Waldbrand erfolgreich gelöscht.", time: "Vor 1 Std" }]
+        };
+
+        const defaultAcademy = {
+            LSPD: [
+                { title: "Grundausbildung & Streifendienst", desc: "Einführung in Grundgesetze, Funkdisziplin und Streifenablauf.", status: "Absolviert" },
+                { title: "Schießtraining & Waffenkunde", desc: "Umgang mit Dienstpistole und Taser, Verhältnismäßigkeit.", status: "Ausstehend" }
+            ],
+            LSCS: [
+                { title: "County Grundausbildung", desc: "Besonderheiten im ländlichen Raum, Offroad-Verfolgung.", status: "Absolviert" },
+                { title: "Tierschutz & Jagdrecht", desc: "Überprüfung von Jagdlizenzen und Wilderei.", status: "Absolviert" }
+            ],
+            LSFR: [
+                { title: "Sanitätsdienst & Erste Hilfe", desc: "Traumaversorgung, Reanimation und Medikamentengabe.", status: "Absolviert" },
+                { title: "Atemschutzlehrgang", desc: "Einsatz unter schwerem Atemschutz bei Gebäudebränden.", status: "Absolviert" }
+            ]
+        };
+
+        const departmentLaws = {
+            LSPD: [
+                {
+                    category: "StGB & Einsatzvorschriften (LSPD)",
+                    icon: "fa-scale-balanced",
+                    items: [
+                        { code: "§ 1", title: "Körperverletzung", desc: "Vorsätzliche Verletzung der körperlichen Unversehrtheit.", penalty: "15 Monate / $5.000" },
+                        { code: "§ 2", title: "Schwerer Raub", desc: "Raubüberfall unter Verwendung von Schusswaffen.", penalty: "45 Monate / $15.000" }
+                    ]
+                }
+            ],
+            LSCS: [
+                {
+                    category: "County Gesetzbuch (LSCS)",
+                    icon: "fa-shield-halved",
+                    items: [
+                        { code: "§ C-1", title: "Wilderei im Schutzgebiet", desc: "Unautorisiertes Jagen in Blaine County.", penalty: "10 Monate / $4.000" },
+                        { code: "§ C-2", title: "Missachtung Sheriff-Anweisungen", desc: "Nichtbefolgen von Straßensperren im County.", penalty: "$3.000 Bußgeld" }
+                    ]
+                }
+            ],
+            LSFR: [
+                {
+                    category: "Dienstanweisungen & Brandschutz (LSFR)",
+                    icon: "fa-fire-extinguisher",
+                    items: [
+                        { code: "PRO-01", title: "Notfall-Triage", desc: "Priorisierung von Verletzten bei Massenanfällen von Notfällen.", penalty: "Medizinische Richtlinie" },
+                        { code: "PRO-02", title: "Brandschutzverordnung", desc: "Evakuierungs- und Löschprotokolle für Gewerbeobjekte.", penalty: "Sicherheitsauflage" }
+                    ]
+                }
+            ]
+        };
+
+        let currentFaction = "LSPD";
+        let currentActiveTab = "dashboard";
+
+        let rosters = JSON.parse(localStorage.getItem('ts_rosters')) || defaultRoster;
+        let applications = JSON.parse(localStorage.getItem('ts_apps')) || defaultApps;
+        let logs = JSON.parse(localStorage.getItem('ts_logs')) || defaultLogs;
+        let academy = JSON.parse(localStorage.getItem('ts_academy')) || defaultAcademy;
+
+        window.onload = function() {
+            switchFaction('LSPD');
+        };
+
+        function switchFaction(facCode) {
+            currentFaction = facCode;
+            const config = factionsConfig[facCode];
+            const root = document.documentElement;
+
+            root.style.setProperty('--primary-color', config.primary);
+            root.style.setProperty('--primary-hover', config.hover);
+            root.style.setProperty('--secondary-color', config.secondary);
+            root.style.setProperty('--badge-bg', config.badgeBg);
+            root.style.setProperty('--badge-border', config.badgeBorder);
+
+            document.getElementById('header-logo').innerText = config.name;
+            document.getElementById('header-logo').style.backgroundColor = config.primary;
+            document.getElementById('header-title').innerText = `${config.name} STATE NET`;
+            document.getElementById('header-subtitle').innerText = config.fullName + " Intranet";
+            document.getElementById('info-region').innerText = config.region;
+            document.getElementById('dash-tag').innerText = `${config.name} Intranet Live`;
+            document.getElementById('roster-fac-title').innerText = config.name;
+            document.getElementById('academy-fac-title').innerText = config.name;
+            document.getElementById('stat-budget').innerText = config.budget;
+
+            if(facCode === 'LSFR') {
+                document.getElementById('laws-header-title').innerText = "Dienstanweisungen & Protokolle";
+                document.getElementById('laws-header-desc').innerText = "Medizinische Richtlinien und Brandschutzverordnungen.";
+                document.getElementById('laws-nav-label').innerText = "Protokolle";
+            } else {
+                document.getElementById('laws-header-title').innerText = "Gesetzbuch & Vorschriften";
+                document.getElementById('laws-header-desc').innerText = "Durchsuche Paragraphen, Strafen und Bußgelder des Tals.";
+                document.getElementById('laws-nav-label').innerText = "Gesetzbücher";
+            }
+
+            ['LSPD', 'LSCS', 'LSFR'].forEach(f => {
+                const btn = document.getElementById(`btn-fac-${f}`);
+                if(f === facCode) {
+                    btn.className = "faction-tab px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-white shadow";
+                    btn.style.backgroundColor = config.primary;
+                } else {
+                    btn.className = "faction-tab px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-gray-400 hover:text-white bg-transparent";
+                }
+            });
+
+            document.getElementById('new-member-dept-display').value = facCode;
+
+            // Refresh current active tab view
+            switchTab(currentActiveTab);
+            showToast(`Behörde gewechselt zu ${config.fullName}`, 'info');
+        }
+
+        function switchTab(tabId) {
+            currentActiveTab = tabId;
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-btn').forEach(el => {
+                el.classList.remove('text-white', 'shadow-lg');
+                el.style.backgroundColor = '';
+                el.classList.add('text-gray-400', 'hover:text-white', 'hover:bg-tsdark-700');
+            });
+
+            const targetTab = document.getElementById(`tab-${tabId}`);
+            if(targetTab) targetTab.classList.remove('hidden');
+
+            const activeBtn = document.getElementById(`nav-${tabId}`);
+            if(activeBtn) {
+                activeBtn.classList.add('text-white', 'shadow-lg');
+                activeBtn.style.backgroundColor = factionsConfig[currentFaction].primary;
+                activeBtn.classList.remove('text-gray-400', 'hover:text-white', 'hover:bg-tsdark-700');
+            }
+
+            // Render specific tab content
+            if(tabId === 'dashboard') renderDashboard();
+            if(tabId === 'roster') renderRoster();
+            if(tabId === 'academy') renderAcademy();
+            if(tabId === 'laws') renderLaws();
+            if(tabId === 'applications') renderApps();
+            if(tabId === 'dispatch') renderLogs();
+        }
+
+        function renderDashboard() {
+            const currentRoster = rosters[currentFaction] || [];
+            const currentApps = applications[currentFaction] || [];
+            document.getElementById('stat-active-officers').innerText = currentRoster.length;
+            document.getElementById('stat-pending-apps').innerText = currentApps.length;
+            document.getElementById('app-badge').innerText = currentApps.length;
+
+            const recentList = document.getElementById('recent-activity-list');
+            const currentLogs = logs[currentFaction] || [];
+            recentList.innerHTML = '';
+
+            if(currentLogs.length === 0) {
+                recentList.innerHTML = `<div class="text-sm text-gray-400">Keine aktuellen Aktivitäten verzeichnet.</div>`;
+                return;
+            }
+
+            currentLogs.slice(0, 3).forEach(log => {
+                recentList.innerHTML += `
+                    <div class="bg-tsdark-700/40 border border-tsdark-600 rounded-xl p-3 flex items-center justify-between">
+                        <div>
+                            <div class="text-sm font-semibold text-white">${log.title}</div>
+                            <div class="text-xs text-gray-400">${log.desc} — <span class="theme-primary">${log.author}</span></div>
+                        </div>
+                        <span class="text-xs text-gray-400 whitespace-nowrap">${log.time}</span>
+                    </div>
+                `;
+            });
+        }
+
+        function renderRoster() {
+            const tbody = document.getElementById('roster-table-body');
+            tbody.innerHTML = '';
+            const currentRoster = rosters[currentFaction] || [];
+
+            if(currentRoster.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-gray-400">Keine Beamten in dieser Abteilung eingetragen.</td></tr>`;
+                return;
+            }
+
+            currentRoster.forEach((member, index) => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-tsdark-700/30 transition-colors">
+                        <td class="p-4 font-medium text-white">${member.name}</td>
+                        <td class="p-4"><span class="text-xs px-2 py-1 rounded theme-badge font-semibold">${member.dept}</span></td>
+                        <td class="p-4 text-gray-300">${member.rank}</td>
+                        <td class="p-4"><span class="px-2 py-0.5 rounded-full text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">${member.status}</span></td>
+                        <td class="p-4 text-right space-x-2">
+                            <button onclick="promoteMember(${index})" title="Befördern" class="bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 px-3 py-1.5 rounded-lg text-xs font-semibold border border-blue-500/30 transition-all">
+                                <i class="fa-solid fa-arrow-up"></i> Up
+                            </button>
+                            <button onclick="demoteMember(${index})" title="Degradieren" class="bg-amber-600/20 text-amber-400 hover:bg-amber-600/30 px-3 py-1.5 rounded-lg text-xs font-semibold border border-amber-500/30 transition-all">
+                                <i class="fa-solid fa-arrow-down"></i> De
+                            </button>
+                            <button onclick="removeMember(${index})" title="Entlassen" class="bg-red-600/20 text-red-400 hover:bg-red-600/30 px-3 py-1.5 rounded-lg text-xs font-semibold border border-red-500/30 transition-all">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function renderAcademy() {
+            const container = document.getElementById('academy-container');
+            container.innerHTML = '';
+            const items = academy[currentFaction] || [];
+
+            items.forEach((mod, index) => {
+                let badgeColor = "bg-blue-500/10 text-blue-400 border-blue-500/20";
+                if(mod.status === "Absolviert") badgeColor = "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
+
+                container.innerHTML += `
+                    <div class="bg-tsdark-800 border border-tsdark-600 rounded-2xl p-5 shadow-lg flex flex-col justify-between gap-4">
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <h3 class="font-orbitron font-bold text-base text-white">${mod.title}</h3>
+                                <span class="px-2.5 py-0.5 rounded-full text-xs border ${badgeColor}">${mod.status}</span>
+                            </div>
+                            <p class="text-sm text-gray-400">${mod.desc}</p>
+                        </div>
+                        <div class="flex justify-end gap-2 pt-2 border-t border-tsdark-600/50">
+                            <button onclick="updateAcademyStatus(${index}, 'Absolviert')" class="px-3 py-1.5 rounded-lg text-xs bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/30 border border-emerald-500/30">Bestanden</button>
+                            <button onclick="updateAcademyStatus(${index}, 'Ausstehend')" class="px-3 py-1.5 rounded-lg text-xs bg-amber-600/20 text-amber-400 hover:bg-amber-600/30 border border-amber-500/30">Zurücksetzen</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function updateAcademyStatus(index, newStatus) {
+            if(!academy[currentFaction]) academy[currentFaction] = [];
+            academy[currentFaction][index].status = newStatus;
+            localStorage.setItem('ts_academy', JSON.stringify(academy));
+            renderAcademy();
+            showToast("Akademie-Status aktualisiert", "success");
+        }
+
+        function renderLaws() {
+            const container = document.getElementById('laws-container');
+            container.innerHTML = '';
+            const lawsList = departmentLaws[currentFaction] || [];
+
+            lawsList.forEach(group => {
+                let itemsHtml = '';
+                group.items.forEach(item => {
+                    itemsHtml += `
+                        <div class="bg-tsdark-700/30 border border-tsdark-600/60 rounded-xl p-4 flex flex-col justify-between gap-2">
+                            <div class="flex items-center justify-between">
+                                <span class="font-orbitron font-bold text-xs theme-secondary-text">${item.code}</span>
+                                <span class="text-xs px-2 py-0.5 rounded bg-tsdark-600 text-gray-300 font-semibold">${item.penalty}</span>
+                            </div>
+                            <h4 class="font-bold text-sm text-white">${item.title}</h4>
+                            <p class="text-xs text-gray-400">${item.desc}</p>
+                        </div>
+                    `;
+                });
+
+                container.innerHTML += `
+                    <div class="bg-tsdark-800 border border-tsdark-600 rounded-2xl p-5 shadow-lg space-y-4">
+                        <div class="flex items-center gap-3 border-b border-tsdark-600 pb-3">
+                            <div class="w-9 h-9 rounded-xl theme-badge flex items-center justify-center text-sm font-bold">
+                                <i class="fa-solid ${group.icon}"></i>
+                            </div>
+                            <h3 class="font-orbitron font-bold text-sm text-white">${group.category}</h3>
+                        </div>
+                        <div class="space-y-3">
+                            ${itemsHtml}
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function renderApps() {
+            const container = document.getElementById('applications-container');
+            container.innerHTML = '';
+            const currentApps = applications[currentFaction] || [];
+
+            if(currentApps.length === 0) {
+                container.innerHTML = `<div class="bg-tsdark-800 border border-tsdark-600 rounded-2xl p-6 text-center text-gray-400">Keine offenen Bewerbungen für diese Abteilung vorliegend.</div>`;
+                return;
+            }
+
+            currentApps.forEach((app, index) => {
+                container.innerHTML += `
+                    <div class="bg-tsdark-800 border border-tsdark-600 rounded-2xl p-5 shadow-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <h3 class="font-orbitron font-bold text-base text-white">${app.name}</h3>
+                                <span class="text-xs px-2 py-0.5 rounded theme-badge font-semibold">${app.dept}</span>
+                                <span class="text-xs text-gray-400">(${app.date})</span>
+                            </div>
+                            <p class="text-sm text-gray-300">${app.reason}</p>
+                        </div>
+                        <div class="flex items-center gap-2 w-full md:w-auto justify-end">
+                            <button onclick="approveApp(${index})" class="px-4 py-2 rounded-xl text-xs bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/30 border border-emerald-500/30 font-semibold flex items-center gap-1.5">
+                                <i class="fa-solid fa-check"></i> Annehmen
+                            </button>
+                            <button onclick="rejectApp(${index})" class="px-4 py-2 rounded-xl text-xs bg-red-600/20 text-red-400 hover:bg-red-600/30 border border-red-500/30 font-semibold flex items-center gap-1.5">
+                                <i class="fa-solid fa-xmark"></i> Ablehnen
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function renderLogs() {
+            const feed = document.getElementById('dispatch-feed');
+            feed.innerHTML = '';
+            const currentLogs = logs[currentFaction] || [];
+
+            if(currentLogs.length === 0) {
+                feed.innerHTML = `<div class="text-center text-gray-400 py-4">Keine Dienst-Logs oder Funksprüche vorhanden.</div>`;
+                return;
+            }
+
+            currentLogs.forEach(log => {
+                feed.innerHTML += `
+                    <div class="bg-tsdark-700/30 border border-tsdark-600 rounded-xl p-4 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="font-orbitron font-bold text-sm text-white">${log.title}</span>
+                            <span class="text-xs text-gray-400">${log.time}</span>
+                        </div>
+                        <p class="text-sm text-gray-300">${log.desc}</p>
+                        <div class="text-xs theme-primary font-semibold flex items-center gap-1">
+                            <i class="fa-solid fa-user-shield"><b>Eingetragen von:</b> ${log.author}</i>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function openAddMemberModal() { document.getElementById('modal-member').classList.remove('hidden'); }
+        function openNewLogModal() { document.getElementById('modal-log').classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+        function saveNewMember() {
+            const name = document.getElementById('new-member-name').value.trim();
+            const rank = document.getElementById('new-member-rank').value.trim();
+            if(!name) { showToast("Bitte Namen und Dienstnummer angeben", "error"); return; }
+
+            if(!rosters[currentFaction]) rosters[currentFaction] = [];
+            rosters[currentFaction].push({ id: Date.now(), name, dept: currentFaction, rank: rank || 'Anwärter', status: 'Im Dienst' });
+            localStorage.setItem('ts_rosters', JSON.stringify(rosters));
+
+            closeModal('modal-member');
+            document.getElementById('new-member-name').value = '';
+            renderRoster();
+            renderDashboard();
+            showToast("Beamter erfolgreich aufgenommen", "success");
+        }
+
+        function promoteMember(index) {
+            const member = rosters[currentFaction][index];
+            member.rank = member.rank + " (Befördert)";
+            localStorage.setItem('ts_rosters', JSON.stringify(rosters));
+            renderRoster();
+            showToast(`Rang von ${member.name} erhöht`, "success");
+        }
+
+        function demoteMember(index) {
+            const member = rosters[currentFaction][index];
+            member.rank = "Zurückgestuft";
+            localStorage.setItem('ts_rosters', JSON.stringify(rosters));
+            renderRoster();
+            showToast(`Rang von ${member.name} herabgestuft`, "info");
+        }
+
+        function removeMember(index) {
+            const member = rosters[currentFaction][index];
+            rosters[currentFaction].splice(index, 1);
+            localStorage.setItem('ts_rosters', JSON.stringify(rosters));
+            renderRoster();
+            renderDashboard();
+            showToast(`${member.name} aus dem Roster entfernt`, "info");
+        }
+
+        function saveNewLog() {
+            const title = document.getElementById('new-log-title').value.trim();
+            const desc = document.getElementById('new-log-desc').value.trim();
+            if(!title || !desc) { showToast("Bitte alle Felder ausfüllen", "error"); return; }
+
+            if(!logs[currentFaction]) logs[currentFaction] = [];
+            logs[currentFaction].unshift({ id: Date.now(), author: "Einsatzleitung", title, desc, time: "Gerade eben" });
+            localStorage.setItem('ts_logs', JSON.stringify(logs));
+
+            closeModal('modal-log');
+            document.getElementById('new-log-title').value = '';
+            document.getElementById('new-log-desc').value = '';
+            renderLogs();
+            renderDashboard();
+            showToast("Funkspruch erfolgreich abgesetzt", "success");
+        }
+
+        function approveApp(index) {
+            const app = applications[currentFaction][index];
+            applications[currentFaction].splice(index, 1);
+
+            if(!rosters[currentFaction]) rosters[currentFaction] = [];
+            rosters[currentFaction].push({ id: Date.now(), name: app.name, dept: currentFaction, rank: 'Anwärter', status: 'Im Dienst' });
+
+            localStorage.setItem('ts_apps', JSON.stringify(applications));
+            localStorage.setItem('ts_rosters', JSON.stringify(rosters));
+
+            renderApps();
+            renderRoster();
+            renderDashboard();
+            showToast(`Bewerbung von ${app.name} angenommen`, "success");
+        }
+
+        function rejectApp(index) {
+            const app = applications[currentFaction][index];
+            applications[currentFaction].splice(index, 1);
+            localStorage.setItem('ts_apps', JSON.stringify(applications));
+
+            renderApps();
+            renderDashboard();
+            showToast(`Bewerbung von ${app.name} abgelehnt`, "info");
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            let bg = "bg-blue-600";
+            if(type === 'success') bg = "bg-emerald-600";
+            if(type === 'error') bg = "bg-red-600";
+
+            toast.className = `${bg} text-white text-xs px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 pointer-events-auto transition-all transform translate-y-2 opacity-0`;
+            toast.innerHTML = `<i class="fa-solid fa-circle-info"></i> ${message}`;
+            
+            container.appendChild(toast);
+            setTimeout(() => { toast.classList.remove('translate-y-2', 'opacity-0'); }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
